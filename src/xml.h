@@ -30,6 +30,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -155,6 +156,7 @@ uint8_t* xml_easy_content(struct xml_node* node);
  */
 size_t xml_string_length(struct xml_string* string);
 
+uint8_t const* xml_string_str(struct xml_string* string);
 
 
 /**

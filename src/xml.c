@@ -271,7 +271,26 @@ static uint8_t xml_parser_peek(struct xml_parser* parser, size_t n) {
 	return 0;
 }
 
+/**
+ * [PRIVATE]
+ *
+ * Returns the n-th byte in parser and 0 if such a byte does not
+ * exist
+ */
+static uint8_t xml_parser_peek_byte(struct xml_parser* parser, size_t n) {
+	size_t position = parser->position;
 
+	while (position < parser->length) {
+		if (n == 0) {
+			return parser->buffer[position];
+		} else {
+			--n;
+		}
+		position++;
+	}
+
+	return 0;
+}
 
 /**
  * [PRIVATE]
@@ -346,20 +365,25 @@ static struct xml_string* xml_parse_tag_end(struct xml_parser* parser) {
 	xml_parser_info(parser, "tag_end");
 	size_t start = parser->position;
 	size_t length = 0;
-
+	int tag_name_is_end = 0;
 	/* Parse until `>' or a whitespace is reached
 	 */
 	while (start + length < parser->length) {
-		uint8_t current = xml_parser_peek(parser, CURRENT_CHARACTER);
-
-		if (('>' == current) || isspace(current)) {
+		uint8_t current = xml_parser_peek_byte(parser, CURRENT_CHARACTER);
+		
+		if ('>' == current) {
 			break;
+		}else if(isspace(current)){
+			tag_name_is_end = 1;
+			xml_parser_consume(parser, 1);
 		} else {
 			xml_parser_consume(parser, 1);
-			length++;
+			if(!tag_name_is_end){
+				length++;
+			}
 		}
 	}
-
+	
 	/* Consume `>'
 	 */
 	if ('>' != xml_parser_peek(parser, CURRENT_CHARACTER)) {
@@ -891,7 +915,12 @@ size_t xml_string_length(struct xml_string* string) {
 	return string->length;
 }
 
-
+uint8_t const* xml_string_str(struct xml_string* string) {
+	if (!string){
+		return NULL;
+	}
+	return string->buffer;
+}
 
 /**
  * [PUBLIC API]
